@@ -1,0 +1,9 @@
+.navLink {
+  &:link,
+  &:visited {
+    margin: 1rem;
+    font-size: 2.75rem;
+    color: $color-white;
+    text-decoration: none;
+  }
+}
