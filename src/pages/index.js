@@ -1,25 +1,33 @@
-import React, { useContext } from "react"
+import React from "react"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-import { Context } from "../../provider"
+import { GlobalStateContext } from "../../provider"
+import MusicPreview from "../components/MusicPreview"
+import NewsPreview from "../components/NewsPreview"
+import ContactPreview from "../components/ContactPreview"
+import AboutPreview from "../components/AboutPreview"
 
 const index = () => {
   return (
     <Layout>
-      <Context.Consumer>
+      <SEO title="Home" />
+      <GlobalStateContext.Consumer>
         {context => (
-          <React.Fragment>
-            <SEO title="Home" />
-          </React.Fragment>
+          <div className="preview">
+            {context[0] === "/music" ? (
+              <MusicPreview />
+            ) : context[0] === "/news" ? (
+              <NewsPreview />
+            ) : context[0] === "/about" ? (
+              <AboutPreview />
+            ) : context[0] === "/contact" ? (
+              <ContactPreview />
+            ) : null}
+          </div>
         )}
-      </Context.Consumer>
+      </GlobalStateContext.Consumer>
     </Layout>
   )
 }
 
 export default index
-
-// <h1>{context.isDark ? "Dark Theme" : "Light Theme"}</h1>
-// <button onClick={() => context.changeTheme()}>
-//   {context.isDark ? "Light" : "Dark"}
-// </button>

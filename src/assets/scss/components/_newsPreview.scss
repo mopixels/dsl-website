@@ -1,0 +1,19 @@
+.newsPreview {
+  display: grid;
+  //   grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+
+  margin: 0 10rem;
+  gap: 2rem;
+
+  &__item {
+    border: 1px solid white;
+    // display: flex;
+    // flex-grow: 1;
+    &-title {
+      margin-top: auto;
+      // text-align: center;
+      // justify-self: center;
+    }
+  }
+}

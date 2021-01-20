@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useContext } from "react"
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from "react"
 import { useStaticQuery, graphql } from "gatsby"
 import Img from "gatsby-image"
 import Slider from "react-slick"
 import NavLink from "./NavLink"
-import { Context } from "../../provider"
-
-// import imag from "../images/nav_index.png"
+import { GlobalStateContext } from "../../provider"
 
 function Navbar({ menuLinks }) {
   const { allFile: navImages } = useStaticQuery(graphql`
@@ -25,15 +29,51 @@ function Navbar({ menuLinks }) {
     }
   `)
 
-  const [status, setStatus] = useContext(Context)
+  const [status, setStatus] = useContext(GlobalStateContext)
+  console.log("status", status)
 
   const [initialSlide, setInitialSlide] = useState()
-  const [navImage, setNavImage] = useState()
-  // const [status, setStatus] = useState(window.location.pathname)
+  const [navImage, setNavImage] = useState("")
+  const sliderRef = useRef()
 
-  // const location = window.location.pathname.slice(1)
+  let location = window.location.pathname
+  const [currentPage, setCurrentPage] = useState(location)
 
-  // console.log("status", status)
+  const handleScroll = useCallback(e => {
+    if (e.deltaY > 0) {
+      sliderRef && sliderRef.current.slickPrev()
+    } else if (e.deltaY < 0) {
+      sliderRef && sliderRef.current.slickNext()
+    }
+  }, [])
+
+  useEffect(() => {
+    currentPage === "/"
+      ? window.addEventListener("wheel", handleScroll)
+      : window.removeEventListener("wheel", handleScroll)
+
+    return () => window.removeEventListener("wheel", handleScroll)
+  }, [currentPage])
+
+  useEffect(() => {
+    const currentSlide = status.slice(1)
+    const currentNavImage = navImages.edges.find(
+      ({ node }) =>
+        node.childImageSharp.fluid.originalName ===
+        (currentSlide ? `nav_${currentSlide}.png` : "nav_index.png")
+    )
+    setNavImage(currentNavImage.node.childImageSharp.fluid)
+  }, [status])
+
+  useEffect(() => {
+    const initialIndex = menuLinks.findIndex(item => item.link === location)
+    setInitialSlide(initialIndex)
+    setStatus(menuLinks[initialIndex].link)
+    // location === "/" && window.addEventListener("wheel", e => handleScroll(e))
+    // console.log("kas vykst")
+  }, [])
+
+  console.log(currentPage)
 
   const settings = {
     infinite: true,
@@ -43,63 +83,92 @@ function Navbar({ menuLinks }) {
     centerMode: true,
     swipeToSlide: true,
     focusOnSelect: true,
+    beforeChange: (oldIndex, newIndex) => setStatus(menuLinks[newIndex].link),
+    className: "navbar__slider",
     // lazyLoad: true,
-    afterChange: current => setStatus(menuLinks[current].link),
-    // className: "center",
     // variableWidth: true,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 3,
+          infinite: true,
+          dots: true,
+        },
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+          initialSlide: 2,
+        },
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+        },
+      },
+    ],
   }
 
-  useEffect(() => {
-    console.log("status", status)
-    const selected = status.slice(1)
-    const currentNavImage = navImages.edges.find(
-      ({ node }) =>
-        node.childImageSharp.fluid.originalName ===
-        (selected ? `nav_${selected}.png` : "nav_index.png")
-    )
-    setNavImage(currentNavImage.node.childImageSharp.fluid)
-    // console.log("navImage", currentNavImage.node.childImageSharp.fluid)
-    // console.log("navImage", currentNavImage.node.childImageSharp)
-  }, [status])
-
-  useEffect(() => {
-    const initialIndex = menuLinks.findIndex(
-      item => item.link === window.location.pathname
-    )
-    setInitialSlide(initialIndex)
-    setStatus(menuLinks[initialIndex].link)
-  }, [])
-
   return (
-    // <Context.Consumer>
-    //   {context => (
-    //     <React.Fragment>
-    <nav className="navbar" role="navigation" aria-label="main-navigation">
-      <ul className="navbar__container">
-        <Slider {...settings} initialSlide={initialSlide}>
+    <>
+      {currentPage === "/" ? (
+        <nav className="navbar" role="navigation" aria-label="main-navigation">
+          <ul className="navbar__container">
+            <Slider {...settings} initialSlide={initialSlide} ref={sliderRef}>
+              {menuLinks.map(item => (
+                <li
+                  key={item.name}
+                  className={`navbar__container-item`}
+                  to={item.link}
+                  index={item.name}
+                >
+                  <NavLink to={item.link} setCurrentPage={setCurrentPage}>
+                    {item.name}
+                  </NavLink>
+                </li>
+              ))}
+            </Slider>
+          </ul>
+          <Img
+            fluid={navImage}
+            alt="Background image"
+            style={{ position: "absolute" }}
+            className="navbar__image"
+          />
+        </nav>
+      ) : (
+        <nav
+          className="navbar-top"
+          role="navigation"
+          aria-label="main-navigation"
+        >
           {menuLinks.map(item => (
             <li
               key={item.name}
               className={`navbar__container-item`}
               to={item.link}
-              // onClick={() => setActive(item.link)}
               index={item.name}
             >
-              <NavLink to={item.link}>{item.name}</NavLink>
+              <NavLink to={item.link} setCurrentPage={setCurrentPage}>
+                {item.name}
+              </NavLink>
             </li>
           ))}
-        </Slider>
-      </ul>
-      <Img
-        fluid={navImage}
-        alt="Background image"
-        style={{ position: "absolute" }}
-        className="navbar__image"
-      />
-    </nav>
-    //     </React.Fragment>
-    //   )}
-    // </Context.Consumer>
+          <Img
+            fluid={navImage}
+            alt="Background image"
+            style={{ position: "absolute" }}
+            className="navbar__image"
+          />
+        </nav>
+      )}
+    </>
   )
 }
 
@@ -110,3 +179,73 @@ export default Navbar
 // <button onClick={() => context.changeTheme()}>
 //   {context.isDark ? "Light" : "Dark"}
 // </button>
+
+// const useOnScroll = (refs, callback) => {
+//   useEffect(() => {
+//     const handleScroll = e => {
+//       console.log("thiz one", refs)
+//       if (refs.some(ref => ref.current === "/")) {
+//         console.log("tru")
+//         if (e.deltaY > 0) {
+//           sliderRef && sliderRef.current.slickPrev()
+//         } else if (e.deltaY < 0) {
+//           sliderRef && sliderRef.current.slickNext()
+//         }
+//       } else {
+//         callback(false)
+//       }
+//     }
+
+//     window.addEventListener("wheel", handleScroll)
+
+//     return () => {
+//       window.removeEventListener("wheel", handleScroll)
+//     }
+//   }, [refs, callback])
+// }
+
+// const someRef = useRef(currentPage)
+// // const someOtherRef = useRef()
+// useOnScroll([someRef], () => {
+//   console.log("location changed !")
+// })
+// const bibilst = item => {
+//   // console.log(item)
+// }
+// const handleScroll = e => {
+//   if (window.location.pathname != "/") {
+//     console.log("lioco", window.location.pathname)
+//     return window.removeEventListener("wheel", handleScroll)
+//   } else {
+//     if (e.deltaY > 0) {
+//       sliderRef && sliderRef.current.slickPrev()
+//     } else if (e.deltaY < 0) {
+//       sliderRef && sliderRef.current.slickNext()
+//     }
+//   }
+// }
+
+// function handleScroll(e) {
+//   console.log("handleScroll")
+//   if (e.deltaY > 0) {
+//     sliderRef && sliderRef.current.slickPrev()
+//   } else if (e.deltaY < 0) {
+//     sliderRef && sliderRef.current.slickNext()
+//   }
+// }
+
+// useEffect(() => {
+//   if (window.location.pathname === "/") {
+//     window.addEventListener("wheel", e => handleScroll(e))
+//     console.log("added")
+//   } else {
+//     console.log("removed")
+//     return () => window.removeEventListener("wheel", handleScroll)
+//   }
+//   // return () => window.removeEventListener("wheel", e => handleScroll(e))
+
+//   // console.log("location", location)
+//   // location === "/"
+//   //   ? window.addEventListener("wheel", e => handleScroll(e))
+//   //   : window.removeEventListener("wheel", console.log("cancel"))
+// }, [window.location.pathname])

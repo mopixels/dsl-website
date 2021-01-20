@@ -1,20 +1,24 @@
-import React, { useContext } from "react"
-import { Link } from "gatsby"
+import React from "react"
+// import { Link } from "gatsby"
 
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-import { Context } from "../../provider"
+// import Info from "../components/contactInfo"
+import { GlobalStateContext } from "../../provider"
 
-const contact = () => {
-  // const [status, setStatus] = useContext(Context)
-
+function contact() {
+  // const [status] = useState(GlobalStateContext)
+  // console.log(GlobalStateContext)
   return (
     <Layout>
-      <React.Fragment>
-        <SEO title="Page two" />
-        {/* {status} */}
-        <h1>Contact</h1>
-      </React.Fragment>
+      <SEO title="contact" />
+      <GlobalStateContext.Consumer>
+        {context => (
+          <>
+            <h2>{context}</h2>
+          </>
+        )}
+      </GlobalStateContext.Consumer>
     </Layout>
   )
 }

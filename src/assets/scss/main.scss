@@ -3,24 +3,22 @@
 @import "abstracts/variables";
 
 @import "base/base";
-// @import "base/animations";
+@import "base/animations";
 @import "base/typography";
 // @import "base/utilities";
 
 @import "components/navbar";
 @import "components/navlink";
-// @import "components/button";
-// @import "components/card";
-// @import "components/composition";
-// @import "components/feature-box";
-// @import "components/form";
-// @import "components/popup";
-// @import "components/story";
+@import "components/musicPreview";
+@import "components/newsPreview";
+@import "components/aboutPreview";
+@import "components/contactPreview";
 
 // @import "layout/footer";
 // @import "layout/grid";
 // @import "layout/header";
 // @import "layout/navigation";
+@import "layout/index";
 
 // @import "pages/home";
 
